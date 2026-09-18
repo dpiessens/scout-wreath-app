@@ -4,21 +4,28 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#1f5130">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Scout Orders">
   <title>Scout Orders</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="img/icon-192.png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="appbar">
   <header class="topbar">
     <div class="brand">🎄 Scout Orders</div>
     <nav>
       <button data-nav="shop">New order</button>
-      <button data-nav="report">Report</button>
+      <button data-nav="report">My sales</button>
       <button data-nav="settings" aria-label="Settings">⚙️</button>
     </nav>
   </header>
+  <div id="syncbar" class="syncbar" hidden></div>
+  </div>
   <main id="app"></main>
 
-  <script src="products.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

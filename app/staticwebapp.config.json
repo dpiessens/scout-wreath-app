@@ -1,0 +1,19 @@
+{
+  "platform": { "apiRuntime": "node:22" },
+  "routes": [
+    { "route": "/admin.html", "allowedRoles": ["admin"] },
+    { "route": "/js/admin.js", "allowedRoles": ["admin"] },
+    { "route": "/api/report/*", "allowedRoles": ["admin"] },
+    { "route": "/.auth/login/aad", "statusCode": 404 },
+    { "route": "/sw.js", "headers": { "cache-control": "no-cache" } },
+    { "route": "/js/*", "headers": { "cache-control": "no-cache" } }
+  ],
+  "responseOverrides": {
+    "401": { "redirect": "/.auth/login/github?post_login_redirect_uri=/admin.html", "statusCode": 302 }
+  },
+  "mimeTypes": { ".webmanifest": "application/manifest+json" },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin"
+  }
+}

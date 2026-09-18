@@ -30,7 +30,7 @@ on **Azure Static Web Apps**.
 ### Azure architecture
 
 ```
-Scout's phone                         Azure (new resource group: wreath-orders)
+Scout's phone                         Azure (new resource group: scout-orders)
 ┌──────────────────────┐   HTTPS      ┌───────────────────────────────────────┐
 │ Web app              │ ───────────▶ │ Static Web App (Free tier)            │
 │ - orders saved on the│              │  ├─ site: HTML/JS, products, images   │
@@ -38,7 +38,7 @@ Scout's phone                         Azure (new resource group: wreath-orders)
 │ - syncs when online  │  orders      │        │                              │
 └──────────────────────┘              │        ▼                              │
                                       │ Storage account → Table: Orders       │
-Leader's laptop ──── /report ───────▶ │ (report page behind SWA login)        │
+Leader's laptop ── /admin.html ─────▶ │ (report page behind SWA login)        │
                                       └───────────────────────────────────────┘
 ```
 
@@ -68,7 +68,7 @@ database on the existing Postgres server with a second small Container App.
 ## Data model
 
 ```
-Product  { id, category, name, description, price, image, active, sortOrder }   -- products.json, shipped with the site
+Product  { id, category, name, description, price, image, active, sortOrder }   -- app/js/products.js, shipped with the site
 
 Order (Table Storage)
   PartitionKey  season, e.g. "2026"
@@ -76,8 +76,9 @@ Order (Table Storage)
   createdAt, syncedAt, seller (Scout name), deviceId
   customerName, phone?, address, lat, lng, gpsAccuracyM
   paymentMethod (cash|check|venmo), checkNumber?
-  itemsJson     [{ productId, name, unitPrice, qty, lineTotal }]
-  donation, itemsTotal, total
+  itemsJson     [{ id, name, category, price, qty, lineTotal }]
+  discountsJson [{ label, amount }]   (popcorn 3 for $25)
+  donation, total
   deleted       (soft delete — orders are never destroyed from a phone)
 ```
 Each order keeps the product name and price as they were when it was placed, so later catalog
@@ -85,27 +86,26 @@ changes don't rewrite past orders.
 
 ## Phases
 
-**Phase 0: Concept prototype** ✅ (`prototype/`, stores data on the device only)
+**Phase 0: Concept prototype** ✅ (replaced by `app/`)
 - Product list with thumbnails, donation, location-to-address, customer name, and cash, check
   or Venmo using the QR image.
 - Report page and CSV export.
 
-**Phase 1: Real catalog and installable app** (~1–2 days)
-- Load the real products and thumbnails (`products.json` plus `img/` in the repo).
-- Ship the troop's Venmo QR image with the site so every device shows the same one. The
-  upload option in Settings stays as a fallback.
+**Phase 1: Real catalog and installable app** ✅
+- Load the real products and thumbnails (`app/js/products.js` plus `app/img/`).
+- Ship the Venmo QR image with the site so every device shows the same one.
 - Web app manifest, icons and an offline service worker so it installs to the home screen and
   opens with no signal.
 - IndexedDB storage in place of localStorage.
 
-**Phase 2: Azure backend and sync** (~2–3 days)
+**Phase 2: Azure backend and sync** ✅ built. Needs the one-time Azure setup in [infra/README.md](infra/README.md) before the first deploy
 - Bicep: resource group, Static Web App (Free) and a storage account with an `Orders` table.
-- Functions: `POST /api/orders` (upsert, checks the access code) and `GET /api/orders`
+- Functions: `POST /api/orders` (upsert, checks the access code) and `GET /api/report/orders`
   (admin only).
 - Offline upload queue and the pending-upload badge.
 - GitHub Actions deploy with OIDC, reusing the FlowerApp setup notes.
 
-**Phase 3: Reporting** (~1–2 days)
+**Phase 3: Reporting** ✅ totals by product, Scout and payment method, a list of checks, and CSV export. Still open: filtering by date range
 - Admin report page: totals by product, donations, payment method, Scout and date range.
 - Order list with map links, and CSV export in the same format the prototype produces.
 - Payment reconciliation: cash total to deposit, a list of check numbers, and the Venmo total

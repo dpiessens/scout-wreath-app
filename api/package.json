@@ -1,0 +1,14 @@
+{
+  "name": "scout-orders-api",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@azure/data-tables": "^13.3.0",
+    "@azure/functions": "^4.6.0"
+  }
+}

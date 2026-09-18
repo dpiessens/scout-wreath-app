@@ -3,8 +3,8 @@
 Usage:
     python tools/crop_flyer.py [page1.jpg] [page2.jpg]
 
-Defaults to prototype/img/scan-1.jpg (items 1–19) and scan-2.jpg (items 20–22).
-Writes prototype/img/w<number>.jpg.
+Defaults to tools/flyer/scan-1.jpg (items 1–19) and scan-2.jpg (items 20–22).
+Writes app/img/w<number>.jpg.
 
 The scans are sideways (text runs top to bottom), so each crop is rotated upright. Boxes are
 fractions of the page (x0, y0, x1, y1), so they work at any scan resolution.
@@ -15,7 +15,8 @@ from pathlib import Path
 from PIL import Image, ImageOps
 
 ROOT = Path(__file__).resolve().parent.parent
-IMG = ROOT / "prototype" / "img"
+IMG = ROOT / "app" / "img"
+SCANS = ROOT / "tools" / "flyer"
 SIZE = 320  # thumbnails show at 72px; 320 stays sharp on high-density screens
 
 
@@ -90,7 +91,7 @@ def crop_page(path: Path, boxes: dict) -> None:
 
 
 if __name__ == "__main__":
-    page1 = Path(sys.argv[1]) if len(sys.argv) > 1 else IMG / "scan-1.jpg"
-    page2 = Path(sys.argv[2]) if len(sys.argv) > 2 else IMG / "scan-2.jpg"
+    page1 = Path(sys.argv[1]) if len(sys.argv) > 1 else SCANS / "scan-1.jpg"
+    page2 = Path(sys.argv[2]) if len(sys.argv) > 2 else SCANS / "scan-2.jpg"
     crop_page(page1, PAGE1)
     crop_page(page2, PAGE2)

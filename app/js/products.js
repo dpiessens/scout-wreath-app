@@ -3,7 +3,7 @@
 // image (optional path or URL). Products without an image show a category icon in place of the thumbnail.
 // Descriptions are from the 2026 wreath flyer. Thumbnails are cut from the flyer scans by tools/crop_flyer.py.
 // Popcorn flavors and descriptions are from the Pack 118 order form (no photos).
-window.PRODUCTS = [
+export const PRODUCTS = [
   { id: 'w1', number: 1, category: 'Wreaths', name: '20" Wreath', price: 28, image: 'img/w1.jpg',
     description: 'Velvet bow, natural cones, fresh evergreen. A fragrant beauty. Nice door size. Full and beautiful.' },
   { id: 'w2', number: 2, category: 'Wreaths', name: '26" Wreath', price: 32, image: 'img/w2.jpg',
@@ -62,12 +62,12 @@ window.PRODUCTS = [
 ];
 
 // Shown in place of a thumbnail when a product has no image.
-window.CATEGORY_ICONS = { Wreaths: '🎄', Popcorn: '🍿' };
+export const CATEGORY_ICONS = { Wreaths: '🎄', Popcorn: '🍿' };
 
 // Shown under the category heading.
-window.CATEGORY_NOTES = { Popcorn: 'All bags are 7 cups. $9 each or 3 for $25, mix and match.' };
+export const CATEGORY_NOTES = { Popcorn: 'All bags are 7 cups. $9 each or 3 for $25, mix and match.' };
 
 // Bundle pricing: every `bundleSize` items in the category cost `bundlePrice` together.
-window.PRICING_RULES = [
+export const PRICING_RULES = [
   { category: 'Popcorn', bundleSize: 3, bundlePrice: 25, label: 'Popcorn 3 for $25' },
 ];

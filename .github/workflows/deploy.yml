@@ -1,0 +1,111 @@
+name: Test and deploy
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-scout-orders
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write # for OIDC sign-in to Azure
+
+jobs:
+  test:
+    name: API tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - run: npm ci
+        working-directory: api
+      - run: npm test
+        working-directory: api
+      - name: Check the Bicep template compiles
+        run: az bicep build -f infra/main.bicep --stdout > /dev/null
+
+  deploy:
+    name: Provision and deploy
+    needs: test
+    if: github.event_name != 'pull_request'
+    # The Azure ids live in this environment's variables and the access code in its secrets.
+    # The federated credential's subject names this environment (see infra/README.md).
+    environment: production
+    runs-on: ubuntu-latest
+    env:
+      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the environment is configured
+        run: |
+          missing=""
+          [ -n "${{ vars.AZURE_CLIENT_ID }}" ] || missing="$missing AZURE_CLIENT_ID(var)"
+          [ -n "${{ vars.AZURE_TENANT_ID }}" ] || missing="$missing AZURE_TENANT_ID(var)"
+          [ -n "${{ vars.AZURE_SUBSCRIPTION_ID }}" ] || missing="$missing AZURE_SUBSCRIPTION_ID(var)"
+          [ -n "${{ vars.AZURE_RESOURCE_GROUP }}" ] || missing="$missing AZURE_RESOURCE_GROUP(var)"
+          [ -n "${{ secrets.ACCESS_CODE }}" ] || missing="$missing ACCESS_CODE(secret)"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing in the production environment:$missing — see infra/README.md"
+            exit 1
+          fi
+
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      # Idempotent: creates everything on the first run, and after that re-applies the app
+      # settings (so a changed ACCESS_CODE takes effect) and otherwise changes nothing.
+      - name: Provision
+        id: infra
+        env:
+          ACCESS_CODE: ${{ secrets.ACCESS_CODE }}
+        run: |
+          set -euo pipefail
+          out=$(az deployment group create \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "scout-orders-${{ github.run_number }}" \
+            --template-file infra/main.bicep \
+            --parameters accessCode="$ACCESS_CODE" \
+            --query properties.outputs --output json)
+          echo "site_name=$(jq -r .siteName.value <<<"$out")" >> "$GITHUB_OUTPUT"
+          echo "site_url=$(jq -r .siteUrl.value <<<"$out")" >> "$GITHUB_OUTPUT"
+
+      # The deployment token is read fresh each run, so there is no long-lived secret to rotate.
+      - name: Get the deployment token
+        id: token
+        run: |
+          token=$(az staticwebapp secrets list -g "$RESOURCE_GROUP" -n "${{ steps.infra.outputs.site_name }}" \
+            --query properties.apiKey -o tsv)
+          echo "::add-mask::$token"
+          echo "value=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy the app and API
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ steps.token.outputs.value }}
+          action: upload
+          app_location: app
+          api_location: api
+          skip_app_build: true
+
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          url="${{ steps.infra.outputs.site_url }}"
+          curl --fail --show-error --silent --retry 6 --retry-delay 10 --retry-all-errors "$url/api/health"
+          echo
+          curl --fail --show-error --silent -o /dev/null "$url/"
+          echo "### App: $url" >> "$GITHUB_STEP_SUMMARY"
+          echo "Admin report: $url/admin.html" >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1f5130">
+  <title>Sales Report</title>
+  <link rel="icon" href="img/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="appbar">
+    <header class="topbar">
+      <div class="brand">🎄 Sales report</div>
+      <nav><a class="navlink" href="/.auth/logout?post_logout_redirect_uri=/">Sign out</a></nav>
+    </header>
+  </div>
+  <main id="app">
+    <div class="row" style="align-items:center">
+      <label for="season" style="margin:0">Season</label>
+      <select id="season"></select>
+      <button class="btn small" id="refresh">Refresh</button>
+    </div>
+    <div id="status" class="hint"></div>
+    <div id="report"></div>
+  </main>
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>
