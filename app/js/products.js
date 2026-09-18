@@ -2,7 +2,8 @@
 // Each product: id (unique, stable), number (item # on the flyer), category, name, description, price,
 // image (optional path or URL). Products without an image show a category icon in place of the thumbnail.
 // Descriptions are from the 2026 wreath flyer. Thumbnails are cut from the flyer scans by tools/crop_flyer.py.
-// Popcorn flavors and descriptions are from the Pack 118 order form (no photos).
+// Popcorn flavors and descriptions are from the Pack 118 order form. Logos come from Pop's Kettle Corn
+// (tools/fetch_popcorn_logos.py); Lemon Bar isn't on their site, so it shows the category icon.
 export const PRODUCTS = [
   { id: 'w1', number: 1, category: 'Wreaths', name: '20" Wreath', price: 28, image: 'img/w1.jpg',
     description: 'Velvet bow, natural cones, fresh evergreen. A fragrant beauty. Nice door size. Full and beautiful.' },
@@ -37,27 +38,27 @@ export const PRODUCTS = [
   { id: 'w22', number: 22, category: 'Wreaths', name: 'Boxed 24" Platinum Wreath', price: 50, image: 'img/w22.jpg',
     description: 'Boxed and delivered with your regular order. Our biggest bow: gold organza ribbon over red velvet, with frosted pine cones and gold ornaments.' },
 
-  { id: 'p1', number: 1, category: 'Popcorn', name: 'Ope Mix', price: 9, image: '',
+  { id: 'p1', number: 1, category: 'Popcorn', name: 'Ope Mix', price: 9, image: 'img/p1.jpg',
     description: 'A blend of our Original Kettle Corn, Caramel Kettle and Coconut Oil & Sea Salt.' },
-  { id: 'p2', number: 2, category: 'Popcorn', name: 'Original Kettle Corn', price: 9, image: '',
+  { id: 'p2', number: 2, category: 'Popcorn', name: 'Original Kettle Corn', price: 9, image: 'img/p2.jpg',
     description: "Pop's OG recipe. Sweet and salty perfection since 2009." },
-  { id: 'p3', number: 3, category: 'Popcorn', name: 'Caramel Kettle', price: 9, image: '',
+  { id: 'p3', number: 3, category: 'Popcorn', name: 'Caramel Kettle', price: 9, image: 'img/p3.jpg',
     description: 'Crunchy, caramel-ly, salty. What more could you ask for in a sweet corn?' },
   { id: 'p4', number: 4, category: 'Popcorn', name: 'Lemon Bar', price: 9, image: '',
     description: 'The perfect mix of lemon sweetness on white popcorn that everyone will love.' },
-  { id: 'p5', number: 5, category: 'Popcorn', name: 'Birthday Cake', price: 9, image: '',
+  { id: 'p5', number: 5, category: 'Popcorn', name: 'Birthday Cake', price: 9, image: 'img/p5.jpg',
     description: "It's kettle corn, but with a phenomenal vanilla fun-fetti flavor." },
-  { id: 'p6', number: 6, category: 'Popcorn', name: 'Party Mix', price: 9, image: '',
+  { id: 'p6', number: 6, category: 'Popcorn', name: 'Party Mix', price: 9, image: 'img/p6.jpg',
     description: 'A blend of OG Kettle, Caramel and Chocolate Kettle Corn. A party in your mouth.' },
-  { id: 'p7', number: 7, category: 'Popcorn', name: 'Muskego Mix', price: 9, image: '',
+  { id: 'p7', number: 7, category: 'Popcorn', name: 'Muskego Mix', price: 9, image: 'img/p7.jpg',
     description: 'OG Kettle, Caramel and Cheddar: our three most popular flavors.' },
-  { id: 'p8', number: 8, category: 'Popcorn', name: 'Yellow Cheddar', price: 9, image: '',
+  { id: 'p8', number: 8, category: 'Popcorn', name: 'Yellow Cheddar', price: 9, image: 'img/p8.jpg',
     description: 'Yellow cheddar popcorn from Wisconsin. A staple and a must-have.' },
-  { id: 'p9', number: 9, category: 'Popcorn', name: 'White Cheddar', price: 9, image: '',
+  { id: 'p9', number: 9, category: 'Popcorn', name: 'White Cheddar', price: 9, image: 'img/p9.jpg',
     description: "Creamy and light. White cheddar won't leave your fingers orange." },
-  { id: 'p10', number: 10, category: 'Popcorn', name: 'Jalapeño Cheddar', price: 9, image: '',
+  { id: 'p10', number: 10, category: 'Popcorn', name: 'Jalapeño Cheddar', price: 9, image: 'img/p10.jpg',
     description: 'Just enough spice to make it dangerous.' },
-  { id: 'p11', number: 11, category: 'Popcorn', name: 'Coconut Oil & Sea Salt (COSS)', price: 9, image: '',
+  { id: 'p11', number: 11, category: 'Popcorn', name: 'Coconut Oil & Sea Salt (COSS)', price: 9, image: 'img/p11.jpg',
     description: "Like buttered popcorn, but so much better, and healthier." },
 ];
 
