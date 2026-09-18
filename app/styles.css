@@ -146,6 +146,12 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .tile .v { font-size: 1.4rem; font-weight: 700; color: var(--green); }
 .tile .k { color: var(--muted); font-size: .85rem; }
 
+.goal-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.goal-head span { font-weight: 700; color: var(--green); font-variant-numeric: tabular-nums; }
+.goal-track { height: 14px; margin: 8px 0 2px; border-radius: 999px; background: var(--green-soft); overflow: hidden; }
+.goal-fill { height: 100%; border-radius: 999px; background: var(--green); transition: width .4s ease; }
+.goal-fill.done { background: linear-gradient(90deg, var(--green), #3f9a57); }
+
 .order-head { display: flex; justify-content: space-between; gap: 8px; }
 .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--green-soft); color: var(--green); font-size: .8rem; font-weight: 600; }
 .row { display: flex; gap: 10px; flex-wrap: wrap; }

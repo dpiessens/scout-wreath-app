@@ -147,6 +147,38 @@ export async function saveOrders({ headers, body }, store, env) {
   return { status: 200, jsonBody: { results } };
 }
 
+/** Scout names match loosely: case, extra spaces and surrounding spaces don't matter. */
+export const sellerKey = s => String(s ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
+
+/**
+ * GET /api/my-sales?seller=Sam%20P — one Scout's orders from every phone, for their "My sales" totals.
+ * Anyone with the access code can ask for any name, so this returns only what the totals need:
+ * no customer names, addresses or phone numbers.
+ */
+export async function mySales({ headers, query }, store, env) {
+  if (!env.ACCESS_CODE) return { status: 500, jsonBody: { error: 'The server has no access code configured.' } };
+  if (!accessCodeMatches(headers['x-access-code'], env.ACCESS_CODE)) {
+    return { status: 403, jsonBody: { error: 'The access code was not accepted.' } };
+  }
+  const key = sellerKey(query.seller);
+  if (!key || key.length > 100) return { status: 400, jsonBody: { error: 'Give the Scout name as ?seller=' } };
+  const season = /^\d{4}$/.test(query.season ?? '') ? query.season : String(new Date().getUTCFullYear());
+  const orders = (await store.list(season)).map(fromEntity)
+    .filter(o => !o.deleted && sellerKey(o.seller) === key)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .map(o => ({
+      id: o.id,
+      createdAt: o.createdAt,
+      deviceId: o.deviceId,
+      items: o.items.map(({ id, name, category, price, qty, lineTotal }) => ({ id, name, category, price, qty, lineTotal })),
+      discounts: o.discounts,
+      donation: o.donation,
+      total: o.total,
+      payment: { method: o.payment.method },
+    }));
+  return { status: 200, jsonBody: { season, orders } };
+}
+
 /** GET /api/report/orders?season=2026 — every order for the season. Admins only. */
 export async function listOrders({ headers, query }, store) {
   if (!rolesOf(headers).includes('admin')) return { status: 403, jsonBody: { error: 'Admins only.' } };

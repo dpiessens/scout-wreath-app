@@ -41,6 +41,17 @@ Edit [app/js/products.js](app/js/products.js) and push. Each product's `id` must
 once orders exist, because reports group by it. Thumbnails go in `app/img/`. If the flyer changes, drop the new
 scans in `tools/flyer/` and run `python tools/crop_flyer.py` (you may need to adjust the crop boxes).
 
+The per-Scout sales goal ($400) is `SALES_GOAL` at the bottom of the same file. It counts
+everything collected, donations included.
+
+## How "My sales" adds up across phones
+
+Each phone asks `/api/my-sales` for every uploaded order under the Scout name in its Settings
+(case and extra spaces don't matter, so "Sam P" and "sam p" match), and merges them with its own.
+The server sends back totals only: no customer names, addresses or phone numbers, because
+anyone with the access code could ask for any name. The detailed order list on each phone shows
+just the orders taken on that phone. Two Scouts who enter the same name will be counted together.
+
 Phones pick up a new version the second time the app is opened after a deploy: the first
 open fetches it in the background.
 

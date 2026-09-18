@@ -1,6 +1,6 @@
 // Azure Functions entry points. The logic lives in ../lib/orders.js.
 import { app } from '@azure/functions';
-import { saveOrders, listOrders } from '../lib/orders.js';
+import { saveOrders, listOrders, mySales } from '../lib/orders.js';
 import { tableStore } from '../lib/table-store.js';
 
 let store;
@@ -28,6 +28,7 @@ const wrap = handler => async (request, context) => {
 };
 
 app.http('saveOrders', { route: 'orders', methods: ['POST'], authLevel: 'anonymous', handler: wrap(saveOrders) });
+app.http('mySales', { route: 'my-sales', methods: ['GET'], authLevel: 'anonymous', handler: wrap(mySales) });
 // Function routes may not start with "admin" (the Functions host reserves it), hence "report".
 app.http('listOrders', { route: 'report/orders', methods: ['GET'], authLevel: 'anonymous', handler: wrap(listOrders) });
 app.http('health', { route: 'health', methods: ['GET'], authLevel: 'anonymous', handler: async () => ({ jsonBody: { ok: true } }) });

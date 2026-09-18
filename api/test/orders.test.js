@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateOrder, toEntity, fromEntity, saveOrders, listOrders, MAX_BATCH } from '../src/lib/orders.js';
+import { validateOrder, toEntity, fromEntity, saveOrders, listOrders, mySales, MAX_BATCH } from '../src/lib/orders.js';
 import { memoryStore } from '../src/lib/memory-store.js';
 
 const env = { ACCESS_CODE: 'Pack118' };
@@ -130,4 +130,40 @@ test('the report is admin-only and hides deleted orders', async () => {
 
   const old = await listOrders({ headers: admin, query: { season: '2025' } }, store);
   assert.deepEqual(old.jsonBody.orders.map(o => o.id), ['d']);
+});
+
+test('my sales adds up one Scout across phones, matching the name loosely', async () => {
+  const store = memoryStore();
+  const h = { 'x-access-code': 'Pack118' };
+  await saveOrders({ headers: h, body: { orders: [
+    order({ id: 'a', seller: 'Sam P', deviceId: 'mom' }),
+    order({ id: 'b', seller: '  sam   p ', deviceId: 'dad' }),
+    order({ id: 'c', seller: 'Sam P', deleted: true }),
+    order({ id: 'd', seller: 'Alex R' }),
+    order({ id: 'e', seller: 'Sam P', createdAt: '2025-10-01T00:00:00.000Z' }),
+  ] } }, store, env);
+
+  const res = await mySales({ headers: h, query: { seller: 'SAM P', season: '2026' } }, store, env);
+  assert.equal(res.status, 200);
+  assert.deepEqual(res.jsonBody.orders.map(o => o.id), ['a', 'b']);
+  assert.deepEqual(res.jsonBody.orders.map(o => o.deviceId), ['mom', 'dad']);
+});
+
+test('my sales leaves out customer details', async () => {
+  const store = memoryStore();
+  const h = { 'x-access-code': 'Pack118' };
+  await saveOrders({ headers: h, body: { orders: [order()] } }, store, env);
+  const [o] = (await mySales({ headers: h, query: { seller: 'Sam', season: '2026' } }, store, env)).jsonBody.orders;
+  assert.equal(o.customer, undefined);
+  assert.deepEqual(o.payment, { method: 'check' });
+  assert.equal(o.total, 58);
+  assert.equal(JSON.stringify(o).includes('Oak St'), false);
+  assert.equal(JSON.stringify(o).includes('Ann Lee'), false);
+});
+
+test('my sales needs the access code and a name', async () => {
+  const store = memoryStore();
+  assert.equal((await mySales({ headers: {}, query: { seller: 'Sam' } }, store, env)).status, 403);
+  assert.equal((await mySales({ headers: { 'x-access-code': 'Pack118' }, query: {} }, store, env)).status, 400);
+  assert.equal((await mySales({ headers: { 'x-access-code': 'Pack118' }, query: { seller: '   ' } }, store, env)).status, 400);
 });
