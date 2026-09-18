@@ -1,0 +1,16 @@
+{
+  "name": "Scout Orders",
+  "short_name": "Scout Orders",
+  "description": "Take wreath and popcorn orders door to door.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f8f6",
+  "theme_color": "#1f5130",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

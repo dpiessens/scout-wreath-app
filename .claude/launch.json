@@ -2,9 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "prototype",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8080", "--directory", "prototype"],
+      "name": "dev",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tools/dev-server.mjs"],
       "port": 8080
     }
   ]
