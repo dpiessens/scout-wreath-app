@@ -27,9 +27,12 @@ button, input, textarea { font: inherit; }
   border-radius: 999px; padding: 6px 12px; cursor: pointer;
 }
 .brand, .topbar nav button { white-space: nowrap; }
+.topbar { gap: 10px; }
+.topbar nav { flex: none; }
 @media (max-width: 420px) {
-  .topbar { padding: 10px 12px; }
-  .brand { font-size: .95rem; }
+  .topbar { padding: 8px 12px; }
+  /* On a phone the title wraps ("Pack 118 / Fundraiser") so the buttons always fit. */
+  .brand { font-size: .92rem; line-height: 1.15; white-space: normal; min-width: 0; }
   .topbar nav { gap: 4px; }
   .topbar nav button { padding: 6px 10px; font-size: .9rem; }
 }
