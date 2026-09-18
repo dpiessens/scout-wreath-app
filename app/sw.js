@@ -1,7 +1,7 @@
 // Service worker: lets the app open and take orders with no signal.
 // App files are served from the cache and refreshed in the background, so a new deploy
 // shows up the next time the app is opened. The API, sign-in and admin page always go to the network.
-const CACHE = 'scout-orders-v2';
+const CACHE = 'scout-orders-v3';
 const THUMBS = [
   ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 16, 20, 21, 22].map(n => `img/w${n}.jpg`),
   ...[1, 2, 3, 5, 6, 7, 8, 9, 10, 11].map(n => `img/p${n}.jpg`),

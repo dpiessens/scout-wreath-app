@@ -8,7 +8,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { saveOrders, listOrders } from '../api/src/lib/orders.js';
+import { saveOrders, listOrders, mySales } from '../api/src/lib/orders.js';
 import { memoryStore } from '../api/src/lib/memory-store.js';
 
 const ROOT = fileURLToPath(new URL('../app/', import.meta.url));
@@ -46,6 +46,10 @@ createServer(async (req, res) => {
     }
     if (url.pathname === '/api/report/orders' && req.method === 'GET') {
       const r = await listOrders({ headers: { ...req.headers, 'x-ms-client-principal': devAdmin }, query: Object.fromEntries(url.searchParams) }, store);
+      return send(res, r.status, r.jsonBody);
+    }
+    if (url.pathname === '/api/my-sales' && req.method === 'GET') {
+      const r = await mySales({ headers: req.headers, query: Object.fromEntries(url.searchParams) }, store, env);
       return send(res, r.status, r.jsonBody);
     }
     if (url.pathname === '/api/health') return send(res, 200, { ok: true });

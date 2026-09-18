@@ -72,3 +72,6 @@ export const CATEGORY_NOTES = { Popcorn: 'All bags are 7 cups. $9 each or 3 for 
 export const PRICING_RULES = [
   { category: 'Popcorn', bundleSize: 3, bundlePrice: 25, label: 'Popcorn 3 for $25' },
 ];
+
+// Each Scout's sales goal for the season. Counts everything collected, donations included.
+export const SALES_GOAL = 400;

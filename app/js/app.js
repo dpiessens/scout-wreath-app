@@ -1,6 +1,6 @@
 // Scout Orders: the Scout's order-taking app.
 // Orders are saved on the device (IndexedDB) first, then uploaded to /api/orders when online.
-import { PRODUCTS, CATEGORY_ICONS, CATEGORY_NOTES, PRICING_RULES } from './products.js';
+import { PRODUCTS, CATEGORY_ICONS, CATEGORY_NOTES, PRICING_RULES, SALES_GOAL } from './products.js';
 import { getAllOrders, putOrder, persist } from './db.js';
 import { fmt, esc, renderReport, downloadCsv } from './report.js';
 
@@ -36,6 +36,14 @@ let locStatus = '';
 let lastCompleted = null;
 let saving = false;
 const sync = { running: false, message: '' };
+
+// This Scout's orders from every phone, from /api/my-sales. Kept in localStorage so "My sales"
+// still shows the full total with no signal. Totals only: no customer details.
+const MY_SALES_KEY = 'scoutOrders.mySales.v1';
+const MY_SALES_RETRY_MS = 30_000;
+let mySales = (() => { try { return JSON.parse(localStorage.getItem(MY_SALES_KEY)); } catch { return null; } })();
+let mySalesTriedAt = 0;
+let mySalesLoading = false;
 
 function newOrder() {
   return {
@@ -84,7 +92,12 @@ const cartTotal = () => round2(cartLines().reduce((s, l) => s + l.lineTotal, 0)
 
 // ---------- Views ----------
 
-function go(v) { view = v; render(); window.scrollTo(0, 0); }
+function go(v) {
+  view = v;
+  render();
+  window.scrollTo(0, 0);
+  if (v === 'report') refreshMySales();
+}
 
 function steps(n) {
   return `<div class="steps">${[1, 2, 3].map(i => `<span class="${i <= n ? 'on' : ''}"></span>`).join('')}</div>`;
@@ -209,8 +222,58 @@ function viewDone() {
   </div>`;
 }
 
+// Matches the API: case and extra spaces in the Scout name don't matter.
+const sellerKey = s => String(s ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
+const thisSeason = () => String(new Date().getUTCFullYear());
+
+// The server's copy, if it's for this Scout and this season.
+function currentMySales() {
+  return mySales && sellerKey(mySales.seller) === sellerKey(settings.seller) && mySales.season === thisSeason() ? mySales : null;
+}
+
+// This Scout's season: every phone's uploaded orders, with this phone's own copy winning, so an
+// order isn't counted twice while it uploads and a deletion here counts straight away.
+function allMyOrders() {
+  const remote = currentMySales();
+  const here = new Set(orders.map(o => o.id));
+  const byId = new Map((remote?.orders ?? []).map(o => [o.id, o]));
+  for (const o of orders) byId.set(o.id, o);
+  const all = [...byId.values()].filter(o => !o.deleted && o.createdAt.slice(0, 4) === thisSeason());
+  return { all, fromOtherPhones: all.filter(o => !here.has(o.id)).length, remote };
+}
+
+async function refreshMySales({ force = false } = {}) {
+  if (!settings.seller || !settings.accessCode || !navigator.onLine || mySalesLoading) return;
+  if (!force && Date.now() - mySalesTriedAt < MY_SALES_RETRY_MS) return;
+  mySalesLoading = true;
+  mySalesTriedAt = Date.now();
+  try {
+    const res = await fetch(`/api/my-sales?seller=${encodeURIComponent(settings.seller)}`, {
+      headers: { 'x-access-code': settings.accessCode }, cache: 'no-store',
+    });
+    if (!res.ok) return;
+    const { season, orders: list } = await res.json();
+    mySales = { seller: settings.seller, season, fetchedAt: Date.now(), orders: list };
+    try { localStorage.setItem(MY_SALES_KEY, JSON.stringify(mySales)); } catch { /* the in-memory copy still works */ }
+  } catch {
+    // Offline: keep showing the last copy.
+  } finally {
+    mySalesLoading = false;
+    if (view === 'report') render();
+  }
+}
+
+function mySalesNote({ fromOtherPhones, remote }) {
+  if (!settings.seller) return 'Add your name in ⚙️ Settings to include sales from your other phones.';
+  if (!remote) return mySalesLoading ? 'Adding up sales from your other phones…' : 'Showing this phone only. Sales from your other phones are added when you are online.';
+  const when = new Date(remote.fetchedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const others = fromOtherPhones ? `Includes ${fromOtherPhones} ${fromOtherPhones === 1 ? 'order' : 'orders'} from other phones under "${esc(settings.seller)}". ` : '';
+  return `${others}Updated ${when}.`;
+}
+
 function viewReport() {
   const pending = unsynced().length;
+  const mine = allMyOrders();
   return `<h1>My sales</h1>
     <div class="card ${pending ? 'notice' : ''}">
       ${pending
@@ -219,7 +282,13 @@ function viewReport() {
       ${sync.message ? `<div class="hint warn">${esc(sync.message)}</div>` : ''}
       ${pending ? `<div style="margin-top:8px"><button class="btn small primary" data-action="sync" ${sync.running ? 'disabled' : ''}>${sync.running ? 'Uploading…' : 'Upload now'}</button></div>` : ''}
     </div>
-    ${renderReport(liveOrders(), { deletable: true })}`;
+    ${renderReport(liveOrders(), {
+      deletable: true,
+      summaryOrders: mine.all,
+      goal: SALES_GOAL,
+      note: mySalesNote(mine),
+      listTitle: 'Orders on this phone',
+    })}`;
 }
 
 function viewSettings() {
@@ -301,6 +370,8 @@ async function uploadPending() {
     sync.running = false;
     refreshSyncViews();
   }
+  // The server's totals now include what just uploaded.
+  if (view === 'report' && !sync.message) refreshMySales({ force: true });
 }
 
 function refreshSyncViews() {
@@ -424,6 +495,7 @@ document.addEventListener('click', e => {
       saveSettings();
       sync.message = '';
       go('shop');
+      refreshMySales({ force: true });
       return uploadPending();
   }
 });
